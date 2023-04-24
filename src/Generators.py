@@ -9,13 +9,14 @@ Sequence = keras.utils.Sequence
 
 class DataGenerator3D(Sequence):
   # From stanford.edu
-  def __init__(self, list_IDs, slices,start,image_size,train_data_path, batch_size = 1, n_channels = 2, shuffle=True):
+  def __init__(self, list_IDs, slices,start,image_size,train_data_path, batch_size = 1, n_channels = 2, shuffle=True, verbose=False):
     self.dim = (image_size,image_size)
     self.batch_size = batch_size
     self.list_IDs = list_IDs
     self.n_channels = n_channels
     self.shuffle = shuffle
     self.on_epoch_end()
+    self.verbose = verbose
 
     self.slices = slices
     self.start = start
@@ -54,6 +55,12 @@ class DataGenerator3D(Sequence):
       flair_image = nib.load(os.path.join(example_path, f'{id}_flair.nii.gz')).get_fdata()    
       ce_image = nib.load(os.path.join(example_path, f'{id}_t1ce.nii.gz')).get_fdata()
       seg_image = nib.load(os.path.join(example_path, f'{id}_seg.nii.gz')).get_fdata()
+        
+      if(self.verbose):
+        layer = flair_image.shape[2]/2
+        plt.imshow(flair_image[:,:,layer])
+        plt.imshow(ce_image[:,:,layer])
+        plt.imshow(seg_image[:,:,layer])
 
       # For each image, resize such that we omit useless channels (ie the very bottom of the brain scans that will only contain the table so no actual brain data.)
       for j in range(self.slices):
@@ -69,6 +76,12 @@ class DataGenerator3D(Sequence):
       # Use one hot encoding to get categorical labels for the different tumor types 
       y[y==4] = 3;
       y = tensorflow.one_hot(y, 4);
+    
+      if(self.verbose):
+        plt.imshow(X[0,:,:,layer-self.start,0])
+        plt.imshow(X[0,:,:,layer-self.start,1])
+        plt.imshow(y[0,:,:,layer-self.start])
+
 
       # Normalize data, and return as tuple with labels
       return X/np.max(X), y
