@@ -4,6 +4,7 @@ import numpy as np
 import nibabel as nib
 import tensorflow
 import cv2
+import matplotlib.pyplot as plt
 from datetime import datetime
 
 Sequence = keras.utils.Sequence
@@ -63,19 +64,23 @@ class DataGenerator3D(Sequence):
       flair_image = nib.load(os.path.join(example_path, f'{id}_flair.nii.gz')).get_fdata()    
       ce_image = nib.load(os.path.join(example_path, f'{id}_t1ce.nii.gz')).get_fdata()
       seg_image = nib.load(os.path.join(example_path, f'{id}_seg.nii.gz')).get_fdata()
-        
-      if(self.verbose):
-        
-        layer = flair_image.shape[2]/2
+      
+      layer = int(flair_image.shape[2]/2)
+      if self.verbose and index==0:
+        os.makedirs(self.log_dir)
         plt.imshow(flair_image[:,:,layer])
+        plt.savefig(os.path.join(self.log_dir, "flair1.png"))
         plt.imshow(ce_image[:,:,layer])
+        plt.savefig(os.path.join(self.log_dir, "ce1.png"))
         plt.imshow(seg_image[:,:,layer])
+        plt.savefig(os.path.join(self.log_dir, "seg1.png"))
 
       # For each image, resize such that we omit useless channels (ie the very bottom of the brain scans that will only contain the table so no actual brain data.)
       for j in range(self.slices):
         X[j+(self.slices*index),:,:,0] = cv2.resize(flair_image[:,:,j+self.start], (self.image_size, self.image_size))
         X[j+(self.slices*index),:,:,1] = cv2.resize(ce_image[:,:,j+self.start], (self.image_size, self.image_size))
         y[j+(self.slices*index),:,:] = cv2.resize(seg_image[:,:,j+self.start], (self.image_size, self.image_size))
+
 
       # Reshape the X with an extra dimension (will be reduced later). Images are 128*128*128 blocks with 2 "channels" for the 
       # flair imaging and ce imaging (2 different types of MRI scans)
@@ -86,10 +91,13 @@ class DataGenerator3D(Sequence):
       y[y==4] = 3;
       y = tensorflow.one_hot(y, 4);
     
-      if(self.verbose):
+      if(self.verbose and index==0):
         plt.imshow(X[0,:,:,layer-self.start,0])
+        plt.savefig(os.path.join(self.log_dir, "flair2.png"))
         plt.imshow(X[0,:,:,layer-self.start,1])
+        plt.savefig(0,os.path.join(self.log_dir, "ce2.png"))
         plt.imshow(y[0,:,:,layer-self.start])
+        plt.savefig(os.path.join(self.log_dir, "seg2.png"))
 
 
       # Normalize data, and return as tuple with labels
