@@ -4,6 +4,7 @@ import numpy as np
 import nibabel as nib
 import tensorflow
 import cv2
+from datetime import datetime
 
 Sequence = keras.utils.Sequence
 
@@ -17,11 +18,18 @@ class DataGenerator3D(Sequence):
     self.shuffle = shuffle
     self.on_epoch_end()
     self.verbose = verbose
+    self.log_dir = None
 
     self.slices = slices
     self.start = start
     self.image_size = image_size
     self.train_data_path = train_data_path
+
+
+    if(self.verbose): 
+      now = datetime.now()
+      self.log_dir = "../logs/" + now.strftime("LOG%m-%d-%Y--%H:%M:%S/")
+
   
   # From stanford.edu
   def __len__(self):
@@ -57,6 +65,7 @@ class DataGenerator3D(Sequence):
       seg_image = nib.load(os.path.join(example_path, f'{id}_seg.nii.gz')).get_fdata()
         
       if(self.verbose):
+        
         layer = flair_image.shape[2]/2
         plt.imshow(flair_image[:,:,layer])
         plt.imshow(ce_image[:,:,layer])
