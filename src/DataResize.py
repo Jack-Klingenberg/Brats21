@@ -1,5 +1,9 @@
-# Script to rewrite all MRI images to correct sizes 
-# (180x180x180) for the VNet
+# Author: Jack Klingenberg
+# Date: April 27th
+# Description: was having trouble with cv2.resize function since it
+# seems to mess with the aspect ratio and orientation of the images.
+# This script rewrites all MRI images to the 180^3 blocks needed by
+# the VNN-3d model 
 
 import nibabel as nib
 import os 
