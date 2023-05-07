@@ -44,7 +44,8 @@ def output_hardware_check():
         for gpu in gpus:
             cli_out(gpu, padf=False,padb=False)
         print()
- 
+
+# Define path for the log outputs
 def logpath(prefix="TRAININGLOG"):
     now = datetime.now()
     path = (os.getcwd() + "/output/" + prefix + "-" + now.isoformat() + "/")
@@ -56,6 +57,7 @@ def logpath(prefix="TRAININGLOG"):
 #    Metrics     #
 ##################
 
+# Compute the dice coefficient for a 4D Volume 
 def dice_coef(y_true, y_pred, epsilon=1.0):
     N = 4
     aggragate_loss = 0
@@ -67,10 +69,12 @@ def dice_coef(y_true, y_pred, epsilon=1.0):
     avg = aggragate_loss / N
     return avg
 
+# Compute the general dice coeff for a certain dimension
 def dice_coef_single_class(y_true,y_pred,i,epsilon=1e-6):
     intersection = K.sum(K.abs(y_true[:,:,:,i] * y_pred[:,:,:,i]))
     return (2. * intersection) / (K.sum(K.square(y_true[:,:,:,i])) + K.sum(K.square(y_pred[:,:,:,i])) + epsilon)
 
+# Compute specific dice coeffs for different subregions
 def dice_coef_necrotic(y_true, y_pred, epsilon=1e-6):
     return dice_coef_single_class(y_true,y_pred, 1,epsilon=epsilon)
 
@@ -80,6 +84,7 @@ def dice_coef_edema(y_true, y_pred, epsilon=1e-6):
 def dice_coef_enhancing(y_true, y_pred, epsilon=1e-6):
     return dice_coef_single_class(y_true,y_pred, 3,epsilon=epsilon)
 
+# Compute confusion matrix stats
 def precision(y_true, y_pred):
     tpfn = K.sum(K.round(K.clip(y_pred, 0, 1)))
     return TP(y_true,y_pred) / (tpfn + K.epsilon())
